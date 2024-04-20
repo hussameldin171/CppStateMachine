@@ -55,33 +55,33 @@ auto MakeTransition(StateId fromState , StateId toState , action_t  action = DoN
 
 //3- State Machine Factory Function: Array Constructor
 template<typename StateId , size_t NumberOfStates = static_cast<size_t>(StateId::NumberOfStates)>
-auto MakeStateMachine(const typename StateMachine<StateId>::states_list& states , const typename StateMachine<StateId>::transitions_list& transitions){
+auto MakeStateMachine(const typename StateMachine<StateId>::states_list& states , const typename StateMachine<StateId>::transitions_list& transitions , StateId initialState = StateId{}){
 
-    return StateMachine<StateId , NumberOfStates>{states , transitions};
+    return StateMachine<StateId , NumberOfStates>{states , transitions , initialState};
 
 }
 
 //4- State Machine Factory Function: Array Constructor
 template<size_t NumberOfStates , typename StateId>
-auto MakeStateMachine(const typename StateMachine<StateId>::states_list& states , const typename StateMachine<StateId>::transitions_list& transitions){
+auto MakeStateMachine(const typename StateMachine<StateId>::states_list& states , const typename StateMachine<StateId>::transitions_list& transitions , StateId initialState = StateId{}){
 
-    return StateMachine<StateId , NumberOfStates>{states , transitions};
+    return StateMachine<StateId , NumberOfStates>{states , transitions,initialState};
 
 }
 
 //5- State Machine Factory Function: Initializer Lists Constructor
 template<typename StateId , size_t NumberOfStates = static_cast<size_t>(StateId::NumberOfStates)>
-auto MakeStateMachine(const std::initializer_list<State<StateId>> & states , const std::initializer_list<Transition<StateId>> & transitions){
+auto MakeStateMachine(const std::initializer_list<State<StateId>> & states , const std::initializer_list<Transition<StateId>> & transitions , StateId initialState = StateId{}){
 
-    return StateMachine<StateId , NumberOfStates>{states , transitions};
+    return StateMachine<StateId , NumberOfStates>{states , transitions, initialState};
 
 }
 
 //6- State Machine Factory Function: Initializer Lists Constructor
 template<size_t NumberOfStates , typename StateId>
-auto MakeStateMachine(const std::initializer_list<State<StateId>> & states , const std::initializer_list<Transition<StateId>> & transitions){
+auto MakeStateMachine(const std::initializer_list<State<StateId>> & states , const std::initializer_list<Transition<StateId>> & transitions , StateId initialState = StateId{}){
 
-    return StateMachine<StateId , NumberOfStates>{states , transitions};
+    return StateMachine<StateId , NumberOfStates>{states , transitions , initialState};
 
 }
 

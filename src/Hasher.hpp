@@ -21,7 +21,7 @@ template<size_t N>
 struct DefaultHasher{
 
     template<typename Integral>
-    size_t operator()(Integral number){
+    size_t operator()(Integral number) const{
         return static_cast<size_t>(number) % N;
     }
 };

@@ -18,7 +18,8 @@
 #include <initializer_list>
 #include <cstddef>
 #include "Hasher.hpp"
-
+#include "HasherConcept.hpp"
+#include <algorithm>
 namespace sm{
 
     using action_t = void(*)(void);
@@ -66,6 +67,18 @@ namespace sm{
 
         /**************************************************************************
          * 
+         *                             Assertions
+         * 
+         * ***********************************************************************/
+        
+        static_assert(NumberOfStates > 0 , "Number of states must be greater than zero");
+
+        static_assert(accepts_state_id_v<Hasher,StateId> , "Hasher must accept a StateId as an argument");
+
+        static_assert(returns_size_t_v<Hasher,StateId> , "Hasher must return a value of type size_t");
+        
+        /**************************************************************************
+         * 
          *                             Constants
          * 
          * ***********************************************************************/
@@ -110,8 +123,12 @@ namespace sm{
         /*3- The current state*/
         size_t current_state;
 
+        /*4- The initial state (for resetting the state machine)*/
+        size_t init_state;
+
         /*4- A hasher functor to convert StateId to indices in the range [0,NumberOfStates)*/
         Hasher hashFunc{};
+        
         
         public:
 
@@ -127,17 +144,23 @@ namespace sm{
         */
         
         //1- Arrays Constructor: 
-        StateMachine(const states_list& states,const transitions_list& transitions) : m_states{states}{
+        StateMachine(const states_list& states,const transitions_list& transitions , StateId initialState = StateId{}) : m_states{states}{
 
-            /*1- Initialize the state transition map*/
+            /*1- Sorting states ascendingly based on their hashing values: */
+            std::sort(m_states.begin(), m_states.end() , [hasher = Hasher{}](state_t a , state_t b){return hasher(a.id) < hasher(b.id);});
+
+            /*2- Initialize the state transition map*/
             for(auto && entry : transitions){
                 m_transitions[hashFunc(entry.fromState)][hashFunc(entry.toState)] = entry;
             }
 
-            /*2- Set the initial state to the first state in the list*/
-            current_state = hashFunc(m_states[0].id);
+            /*3- Set the initial state*/
 
-            /*3- Execute the entry action of the initial state*/
+            init_state = hashFunc(initialState);
+
+            current_state = init_state;
+
+            /*4- Execute the entry action of the initial state*/
             if(m_states[current_state].entryAction){
 
                 m_states[current_state].entryAction();
@@ -146,18 +169,24 @@ namespace sm{
         }
 
         //2- Initializer Lists Constructor:
-        StateMachine(const std::initializer_list<state_t> & states , const std::initializer_list<transition_t> & transitions){
+        StateMachine(const std::initializer_list<state_t> & states , const std::initializer_list<transition_t> & transitions , StateId initialState = StateId{}){
             
-            /*0- Moving ownership of the given states: */
+            /*1- Moving ownership of the given states: */
             std::move(states.begin() , states.end() , m_states.begin());
 
-            /*1- Initialize the state transition map*/
+            /*2- Sorting states ascendingly based on their hashing values: */
+            std::sort(m_states.begin(), m_states.end() , [hasher = Hasher{}](state_t a , state_t b){return hasher(a.id) < hasher(b.id);});
+
+            /*3- Initialize the state transition map*/
             for(auto && entry : transitions){
                 m_transitions[hashFunc(entry.fromState)][hashFunc(entry.toState)] = entry;
             }
 
-            /*2- Set the initial state to the first state in the list*/
-            current_state = hashFunc(m_states[0].id);
+            /*4- Set the initial state*/
+            
+            init_state = hashFunc(initialState);
+
+            current_state = init_state;
 
             /*3- Execute the entry action of the initial state*/
             if(m_states[current_state].entryAction){
@@ -225,6 +254,11 @@ namespace sm{
         return current_state == hashFunc(state);
     
     }
+
+    void reset(void){
+        current_state = init_state;
+    }
+
 };
 }
 #endif // __STATEMACHINE_H__
